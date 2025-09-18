@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Tutedude - AI Interview Proctoring{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="hero-title text-white mb-4">
+                <span class="gradient-text">AI-Powered</span><br>
+                Interview Proctoring
+            </h1>
+            <p class="hero-subtitle">
+                Secure, intelligent, and comprehensive proctoring solution powered by advanced AI technology.
+                Ensure interview integrity with real-time monitoring and detailed analytics.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{{ url_for('main.start_interview') }}" class="btn btn-primary btn-lg px-4">
+                    <i class="fas fa-play me-2"></i>Start Interview
+                </a>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="fas fa-chart-bar me-2"></i>View Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-10 mx-auto">
+        <div class="text-center mb-5">
+            <h2 class="text-white mb-3">Powerful AI Features</h2>
+            <p class="text-white-50">Advanced technology ensuring comprehensive interview monitoring</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Smart Focus Detection</h5>
+                        <p class="card-text text-muted">Advanced gaze tracking and attention monitoring using computer vision to detect when candidates look away from the screen.</p>
+                        <div class="mt-3">
+                            <span class="badge bg-success">Real-time</span>
+                            <span class="badge bg-info">AI-Powered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Object Detection</h5>
+                        <p class="card-text text-muted">Intelligent detection of unauthorized items including phones, books, notes, and other suspicious objects in the workspace.</p>
+                        <div class="mt-3">
+                            <span class="badge bg-warning">YOLO-based</span>
+                            <span class="badge bg-primary">Accurate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Behavioral Analysis</h5>
+                        <p class="card-text text-muted">Advanced drowsiness detection, multiple face recognition, and comprehensive behavioral pattern analysis.</p>
+                        <div class="mt-3">
+                            <span class="badge bg-danger">Multi-modal</span>
+                            <span class="badge bg-success">Intelligent</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-10 mx-auto">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card glass-effect text-white h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3">Start New Interview</h4>
+                        <p class="card-text mb-4">Begin a comprehensive proctored interview session with real-time AI monitoring and analysis.</p>
+                        <a href="{{ url_for('main.start_interview') }}" class="btn btn-light btn-lg w-100">
+                            <i class="fas fa-play me-2"></i>Start Interview
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card glass-effect text-white h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3">Analytics Dashboard</h4>
+                        <p class="card-text mb-4">Access comprehensive reports, analytics, and insights from previous interview sessions.</p>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light btn-lg w-100">
+                            <i class="fas fa-chart-bar me-2"></i>View Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Requirements -->
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center">
+                        <div class="feature-icon mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-info-circle text-primary me-2"></i>System Requirements
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-camera text-success me-2"></i>
+                                    <small>HD Camera Access</small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-wifi text-success me-2"></i>
+                                    <small>Stable Internet Connection</small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-lightbulb text-success me-2"></i>
+                                    <small>Well-lit Environment</small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-desktop text-success me-2"></i>
+                                    <small>Modern Web Browser</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

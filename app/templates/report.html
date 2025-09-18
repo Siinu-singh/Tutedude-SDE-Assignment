@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}Tutedude - Proctoring Report - {{ interview.candidate.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-header {
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+    
+    .score-excellent { background: #28a745; }
+    .score-good { background: #17a2b8; }
+    .score-warning { background: #ffc107; color: #000; }
+    .score-poor { background: #dc3545; }
+    
+    .stat-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        border-left: 4px solid #007bff;
+    }
+    
+    .event-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .event-timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -22px;
+        top: 20px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #007bff;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #007bff;
+    }
+    
+    .timeline-item.warning::before { background: #ffc107; box-shadow: 0 0 0 2px #ffc107; }
+    .timeline-item.danger::before { background: #dc3545; box-shadow: 0 0 0 2px #dc3545; }
+    
+    @media print {
+        .no-print { display: none !important; }
+        .report-header { background: #6c757d !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-graduation-cap me-3 fa-2x"></i>
+                <div>
+                    <h1 class="mb-1">Tutedude AI Proctoring Report</h1>
+                    <p class="mb-0 opacity-75">Comprehensive Interview Analysis</p>
+                </div>
+            </div>
+            <h3 class="mb-1">{{ interview.candidate.name }}</h3>
+            <p class="mb-0">
+                <i class="fas fa-calendar"></i> {{ interview.start_time.strftime('%B %d, %Y at %I:%M %p') }}
+                {% if interview.end_time %}
+                - {{ interview.end_time.strftime('%I:%M %p') }}
+                {% endif %}
+            </p>
+            <p class="mb-0">
+                <i class="fas fa-user-tie"></i> Interviewer: {{ interview.interviewer_name }}
+            </p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="score-circle 
+                {% if interview.integrity_score >= 80 %}score-excellent
+                {% elif interview.integrity_score >= 60 %}score-good
+                {% elif interview.integrity_score >= 40 %}score-warning
+                {% else %}score-poor{% endif %}">
+                {{ "%.0f"|format(interview.integrity_score) }}%
+            </div>
+            <p class="mt-2 mb-0">Integrity Score</p>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h4 class="text-primary mb-1">{{ interview.duration_formatted }}</h4>
+            <small class="text-muted">Interview Duration</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h4 class="text-warning mb-1">{{ stats.total_focus_loss_events }}</h4>
+            <small class="text-muted">Focus Loss Events</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h4 class="text-danger mb-1">{{ stats.total_phone_detections + stats.total_notes_detections }}</h4>
+            <small class="text-muted">Suspicious Objects</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h4 class="text-info mb-1">{{ stats.total_multiple_faces_events }}</h4>
+            <small class="text-muted">Multiple Faces</small>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analysis -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-timeline"></i> Event Timeline
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                <div class="event-timeline">
+                    {% for event in events %}
+                    <div class="timeline-item 
+                        {% if event.event_type in ['phone_detected', 'notes_detected', 'no_face'] %}danger
+                        {% elif event.event_type in ['focus_loss', 'multiple_faces'] %}warning
+                        {% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    {% if event.event_type == 'focus_loss' %}
+                                        <i class="fas fa-eye-slash text-warning"></i> Focus Lost
+                                    {% elif event.event_type == 'no_face' %}
+                                        <i class="fas fa-user-slash text-danger"></i> No Face Detected
+                                    {% elif event.event_type == 'multiple_faces' %}
+                                        <i class="fas fa-users text-warning"></i> Multiple Faces
+                                    {% elif event.event_type == 'phone_detected' %}
+                                        <i class="fas fa-mobile-alt text-danger"></i> Phone Detected
+                                    {% elif event.event_type == 'notes_detected' %}
+                                        <i class="fas fa-book text-danger"></i> Notes/Books Detected
+                                    {% elif event.event_type == 'drowsiness_detected' %}
+                                        <i class="fas fa-bed text-warning"></i> Drowsiness Detected
+                                    {% elif event.event_type == 'audio_violation' %}
+                                        <i class="fas fa-volume-up text-warning"></i> Background Voices
+                                    {% endif %}
+                                </h6>
+                                <p class="mb-1">
+                                    {% if event.event_type == 'focus_loss' %}
+                                        Candidate was not looking at the screen
+                                        {% if event.duration %}for {{ "%.1f"|format(event.duration) }} seconds{% endif %}
+                                    {% elif event.event_type == 'no_face' %}
+                                        No face was detected in the video frame
+                                        {% if event.duration %}for {{ "%.1f"|format(event.duration) }} seconds{% endif %}
+                                    {% elif event.event_type == 'multiple_faces' %}
+                                        Multiple faces detected in the frame
+                                    {% elif event.event_type == 'phone_detected' %}
+                                        Mobile phone detected in the workspace
+                                    {% elif event.event_type == 'notes_detected' %}
+                                        Books or notes detected in the workspace
+                                    {% elif event.event_type == 'drowsiness_detected' %}
+                                        Candidate showing signs of drowsiness or eye closure
+                                        {% if event.duration %}for {{ "%.1f"|format(event.duration) }} seconds{% endif %}
+                                    {% elif event.event_type == 'audio_violation' %}
+                                        Background voices or suspicious audio detected
+                                    {% endif %}
+                                </p>
+                                {% if event.confidence %}
+                                <small class="text-muted">
+                                    Confidence: {{ "%.1f"|format(event.confidence * 100) }}%
+                                </small>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                {{ event.timestamp.strftime('%I:%M:%S %p') }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                    <h5>No Violations Detected</h5>
+                    <p class="text-muted">The candidate maintained proper conduct throughout the interview.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Violation Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Violation Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Focus Loss Events</span>
+                        <span class="badge bg-warning">{{ stats.total_focus_loss_events }}</span>
+                    </div>
+                    {% if stats.total_focus_loss_time > 0 %}
+                    <small class="text-muted">Total time: {{ "%.1f"|format(stats.total_focus_loss_time) }}s</small>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>No Face Events</span>
+                        <span class="badge bg-danger">{{ stats.total_no_face_events }}</span>
+                    </div>
+                    {% if stats.total_no_face_time > 0 %}
+                    <small class="text-muted">Total time: {{ "%.1f"|format(stats.total_no_face_time) }}s</small>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Multiple Faces</span>
+                        <span class="badge bg-warning">{{ stats.total_multiple_faces_events }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Phone Detections</span>
+                        <span class="badge bg-danger">{{ stats.total_phone_detections }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Notes/Books</span>
+                        <span class="badge bg-danger">{{ stats.total_notes_detections }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Drowsiness Events</span>
+                        <span class="badge bg-warning">{{ stats.get('total_drowsiness_events', 0) }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Audio Violations</span>
+                        <span class="badge bg-warning">{{ stats.get('total_audio_violations', 0) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card no-print">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-download"></i> Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.download_report', interview_id=interview.id) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-file-csv"></i> Download CSV Report
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Score Interpretation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Score Interpretation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="score-circle score-excellent mb-2" style="width: 60px; height: 60px; font-size: 1rem;">90+</div>
+                        <h6>Excellent</h6>
+                        <small class="text-muted">Minimal violations, high integrity</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="score-circle score-good mb-2" style="width: 60px; height: 60px; font-size: 1rem;">70-89</div>
+                        <h6>Good</h6>
+                        <small class="text-muted">Minor violations, acceptable conduct</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="score-circle score-warning mb-2" style="width: 60px; height: 60px; font-size: 1rem;">50-69</div>
+                        <h6>Concerning</h6>
+                        <small class="text-muted">Multiple violations, requires review</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="score-circle score-poor mb-2" style="width: 60px; height: 60px; font-size: 1rem;">&lt;50</div>
+                        <h6>Poor</h6>
+                        <small class="text-muted">Significant violations, integrity compromised</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}Tutedude - Interview Room - {{ candidate_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #videoContainer {
+        position: relative;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #candidateVideo {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+    
+    .recording-indicator {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .recording-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    
+    .event-log {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    
+    .event-item {
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .event-focus-loss { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .event-no-face { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .event-multiple-faces { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+    .event-phone-detected { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .event-notes-detected { background: #f8d7da; border-left: 4px solid #dc3545; }
+    
+    .stats-card {
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .integrity-score {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .controls-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: var(--shadow-lg);
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Video Feed Column -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-video"></i> Candidate: {{ candidate_name }}
+                </h5>
+                <div class="d-flex align-items-center">
+                    <span class="status-indicator status-active"></span>
+                    <span class="me-3">Live</span>
+                    <span id="interviewTimer" class="badge bg-primary">00:00:00</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="videoContainer">
+                    <video id="candidateVideo" autoplay muted></video>
+                    <div class="recording-indicator">
+                        <span class="recording-dot"></span>
+                        RECORDING
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6 class="mb-2">Interview Controls</h6>
+                    <div class="btn-group" role="group">
+                        <button id="startBtn" class="btn btn-success">
+                            <i class="fas fa-play"></i> Start Monitoring
+                        </button>
+                        <button id="pauseBtn" class="btn btn-warning" disabled>
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button id="endBtn" class="btn btn-danger">
+                            <i class="fas fa-stop"></i> End Interview
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="stats-card d-inline-block">
+                        <div class="text-center">
+                            <div class="integrity-score" id="integrityScore">100</div>
+                            <small>Integrity Score</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monitoring Panel Column -->
+    <div class="col-lg-4">
+        <!-- Real-time Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Real-time Monitoring
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 id="faceCount" class="text-success mb-1">0</h4>
+                            <small class="text-muted">Faces Detected</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 id="objectCount" class="text-warning mb-1">0</h4>
+                        <small class="text-muted">Objects Detected</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-12">
+                        <div id="focusStatus" class="badge bg-success">Focused</div>
+                        <div id="lastActivity" class="text-muted mt-2">
+                            <small>Last activity: Just now</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Log -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-list"></i> Event Log
+                </h6>
+                <button id="clearLog" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div id="eventLog" class="event-log">
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-clock"></i>
+                        <p class="mb-0">Monitoring will start when you click "Start Monitoring"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class InterviewProctoring {
+    constructor() {
+        this.video = document.getElementById('candidateVideo');
+        this.canvas = document.createElement('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.isMonitoring = false;
+        this.startTime = null;
+        this.intervalId = null;
+        this.timerInterval = null;
+        
+        this.initializeElements();
+        this.setupEventListeners();
+        this.initializeCamera();
+    }
+    
+    initializeElements() {
+        this.startBtn = document.getElementById('startBtn');
+        this.pauseBtn = document.getElementById('pauseBtn');
+        this.endBtn = document.getElementById('endBtn');
+        this.eventLog = document.getElementById('eventLog');
+        this.faceCount = document.getElementById('faceCount');
+        this.objectCount = document.getElementById('objectCount');
+        this.focusStatus = document.getElementById('focusStatus');
+        this.integrityScore = document.getElementById('integrityScore');
+        this.interviewTimer = document.getElementById('interviewTimer');
+    }
+    
+    setupEventListeners() {
+        this.startBtn.addEventListener('click', () => this.startMonitoring());
+        this.pauseBtn.addEventListener('click', () => this.pauseMonitoring());
+        this.endBtn.addEventListener('click', (e) => {
+            // Simple confirm dialog instead of modal
+            if (confirm('Are you sure you want to end this interview session?\n\nThis action cannot be undone. A proctoring report will be generated.')) {
+                this.endInterview();
+            }
+        });
+
+        document.getElementById('clearLog').addEventListener('click', () => this.clearEventLog());
+        
+        // Add keyboard shortcut for ending interview
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                this.endInterview();
+            }
+        });
+    }
+    
+    async initializeCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480 },
+                audio: false
+            });
+            this.video.srcObject = stream;
+            
+            this.video.addEventListener('loadedmetadata', () => {
+                this.canvas.width = this.video.videoWidth;
+                this.canvas.height = this.video.videoHeight;
+            });
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            this.addEventToLog('error', 'Failed to access camera. Please check permissions.');
+        }
+    }
+    
+    startMonitoring() {
+        this.isMonitoring = true;
+        this.startTime = new Date();
+        
+        // Update UI
+        this.startBtn.disabled = true;
+        this.pauseBtn.disabled = false;
+        
+        // Start processing frames
+        this.intervalId = setInterval(() => this.processFrame(), 1000); // Process every second
+        
+        // Start timer
+        this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+        
+        this.addEventToLog('info', 'Interview monitoring started');
+    }
+    
+    pauseMonitoring() {
+        this.isMonitoring = false;
+        
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        
+        // Update UI
+        this.startBtn.disabled = false;
+        this.pauseBtn.disabled = true;
+        
+        this.addEventToLog('info', 'Interview monitoring paused');
+    }
+    
+
+    
+    async endInterview() {
+        // Show loading state on end button
+        const originalText = this.endBtn.innerHTML;
+        this.endBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ending...';
+        this.endBtn.disabled = true;
+        
+        this.pauseMonitoring();
+        
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        try {
+            const response = await fetch('{{ url_for("main.end_interview") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Redirect to report page
+                window.location.href = `{{ url_for('main.generate_report', interview_id=0) }}`.replace('0', result.interview_id);
+            } else {
+                throw new Error(result.error || 'Unknown error occurred');
+            }
+        } catch (error) {
+            console.error('Error ending interview:', error);
+            alert('Error ending interview: ' + error.message + '. Please try again.');
+            
+            // Restore button state
+            this.endBtn.innerHTML = originalText;
+            this.endBtn.disabled = false;
+        }
+    }
+    
+    async processFrame() {
+        if (!this.isMonitoring || !this.video.videoWidth) return;
+        
+        // Draw current frame to canvas
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        
+        // Convert to base64
+        const frameData = this.canvas.toDataURL('image/jpeg', 0.8);
+        
+        try {
+            const response = await fetch('{{ url_for("main.process_frame") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ frame: frameData })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Update UI with results
+                this.faceCount.textContent = result.face_count;
+                this.objectCount.textContent = result.objects_detected;
+                
+                // Update focus status
+                const hasFocusIssues = result.events.some(e => 
+                    e.type === 'focus_loss' || e.type === 'no_face' || e.type === 'drowsiness_detected'
+                );
+                
+                if (hasFocusIssues) {
+                    this.focusStatus.className = 'badge bg-danger';
+                    this.focusStatus.textContent = 'Not Focused';
+                } else if (result.face_count === 1) {
+                    this.focusStatus.className = 'badge bg-success';
+                    this.focusStatus.textContent = 'Focused';
+                } else if (result.face_count > 1) {
+                    this.focusStatus.className = 'badge bg-warning';
+                    this.focusStatus.textContent = 'Multiple Faces';
+                } else {
+                    this.focusStatus.className = 'badge bg-secondary';
+                    this.focusStatus.textContent = 'No Face';
+                }
+                
+                // Add events to log
+                result.events.forEach(event => {
+                    this.addEventToLog(event.type, event.message);
+                });
+                
+                // Update last activity
+                document.getElementById('lastActivity').innerHTML = 
+                    `<small>Last activity: ${new Date().toLocaleTimeString()}</small>`;
+                
+            }
+        } catch (error) {
+            console.error('Error processing frame:', error);
+        }
+    }
+    
+    addEventToLog(type, message) {
+        const eventItem = document.createElement('div');
+        eventItem.className = `event-item event-${type}`;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        eventItem.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <span>${message}</span>
+                <small class="text-muted">${timestamp}</small>
+            </div>
+        `;
+        
+        // Clear "no events" message if it exists
+        if (this.eventLog.querySelector('.text-center')) {
+            this.eventLog.innerHTML = '';
+        }
+        
+        this.eventLog.insertBefore(eventItem, this.eventLog.firstChild);
+        
+        // Limit to 50 events
+        while (this.eventLog.children.length > 50) {
+            this.eventLog.removeChild(this.eventLog.lastChild);
+        }
+        
+        // Update integrity score (simplified calculation)
+        this.updateIntegrityScore(type);
+    }
+    
+    updateIntegrityScore(eventType) {
+        const penalties = {
+            'focus_loss': 2,
+            'no_face': 5,
+            'multiple_faces': 10,
+            'phone_detected': 15,
+            'notes_detected': 10,
+            'drowsiness_detected': 8,
+            'audio_violation': 5
+        };
+        
+        if (penalties[eventType]) {
+            let currentScore = parseInt(this.integrityScore.textContent);
+            currentScore = Math.max(0, currentScore - penalties[eventType]);
+            this.integrityScore.textContent = currentScore;
+            
+            // Update color based on score
+            if (currentScore >= 80) {
+                this.integrityScore.parentElement.style.background = 
+                    'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            } else if (currentScore >= 60) {
+                this.integrityScore.parentElement.style.background = 
+                    'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)';
+            } else {
+                this.integrityScore.parentElement.style.background = 
+                    'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+            }
+        }
+    }
+    
+    updateTimer() {
+        if (!this.startTime) return;
+        
+        const now = new Date();
+        const elapsed = Math.floor((now - this.startTime) / 1000);
+        
+        const hours = Math.floor(elapsed / 3600);
+        const minutes = Math.floor((elapsed % 3600) / 60);
+        const seconds = elapsed % 60;
+        
+        this.interviewTimer.textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    clearEventLog() {
+        this.eventLog.innerHTML = `
+            <div class="text-center text-muted py-3">
+                <i class="fas fa-clock"></i>
+                <p class="mb-0">Event log cleared</p>
+            </div>
+        `;
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new InterviewProctoring();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Tutedude - Start New Interview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--tutedude-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    .checklist .fas {
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <div class="feature-icon mx-auto mb-3">
+                <i class="fas fa-video"></i>
+            </div>
+            <h2 class="text-white fw-bold mb-3">Start New Interview Session</h2>
+            <p class="text-white-50">Set up a comprehensive AI-proctored interview with real-time monitoring</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Form Card -->
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fas fa-user-plus text-primary me-2"></i>Interview Details
+                        </h5>
+                        
+                        <form method="POST">
+                            <div class="mb-4">
+                                <label for="candidate_name" class="form-label fw-semibold">
+                                    <i class="fas fa-user text-primary me-2"></i>Candidate Name
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="candidate_name" 
+                                       name="candidate_name" placeholder="Enter candidate's full name" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="candidate_email" class="form-label fw-semibold">
+                                    <i class="fas fa-envelope text-primary me-2"></i>Candidate Email
+                                </label>
+                                <input type="email" class="form-control form-control-lg" id="candidate_email" 
+                                       name="candidate_email" placeholder="candidate@example.com" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="interviewer_name" class="form-label fw-semibold">
+                                    <i class="fas fa-user-tie text-primary me-2"></i>Interviewer Name
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="interviewer_name" 
+                                       name="interviewer_name" placeholder="Enter interviewer's name" required>
+                            </div>
+                            
+                            <div class="d-grid gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-play me-2"></i>Start Interview Session
+                                </button>
+                                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Requirements Card -->
+            <div class="col-md-5">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fas fa-shield-check text-success me-2"></i>Pre-Interview Checklist
+                        </h5>
+                        
+                        <div class="checklist">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <strong>Camera Access</strong>
+                                    <p class="text-muted small mb-0">Grant camera permissions for video monitoring</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <strong>Proper Lighting</strong>
+                                    <p class="text-muted small mb-0">Ensure face is clearly visible and well-lit</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <strong>Clean Workspace</strong>
+                                    <p class="text-muted small mb-0">Remove unauthorized items from view</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <strong>Stable Connection</strong>
+                                    <p class="text-muted small mb-0">Ensure reliable internet connectivity</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <strong>Browser Compatibility</strong>
+                                    <p class="text-muted small mb-0">Use Chrome, Firefox, Safari, or Edge</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>AI Monitoring:</strong> This session will use advanced AI to monitor focus, detect objects, and ensure interview integrity.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
