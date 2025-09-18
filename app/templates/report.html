@@ -307,6 +307,12 @@
                        class="btn btn-primary">
                         <i class="fas fa-file-csv"></i> Download CSV Report
                     </a>
+                    {% if interview.video_path %}
+                    <a href="{{ url_for('main.serve_recording', filename=interview.video_path.split('/')[-1]) }}" 
+                       class="btn btn-outline-success" target="_blank">
+                        <i class="fas fa-video"></i> View Recording
+                    </a>
+                    {% endif %}
                     <button onclick="window.print()" class="btn btn-outline-primary">
                         <i class="fas fa-print"></i> Print Report
                     </button>

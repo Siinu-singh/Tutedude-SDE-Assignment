@@ -289,6 +289,65 @@ def resume_interview(interview_id):
     
     return redirect(url_for('main.interview_room'))
 
+@main_bp.route('/save_recording', methods=['POST'])
+def save_recording():
+    """Save uploaded video recording"""
+    try:
+        if 'interview_id' not in session:
+            return jsonify({'error': 'No active interview'}), 400
+        
+        interview_id = session['interview_id']
+        interview = Interview.query.get(interview_id)
+        
+        if not interview:
+            return jsonify({'error': 'Interview not found'}), 404
+        
+        if 'video' not in request.files:
+            return jsonify({'error': 'No video file'}), 400
+        
+        video_file = request.files['video']
+        if video_file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Create filename with interview ID and timestamp
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        filename = f'interview_{interview_id}_{timestamp}.webm'
+        
+        # Ensure recordings directory exists
+        from flask import current_app
+        recordings_dir = os.path.join(current_app.root_path, '..', 'static', 'recordings')
+        os.makedirs(recordings_dir, exist_ok=True)
+        
+        # Save file
+        file_path = os.path.join(recordings_dir, filename)
+        video_file.save(file_path)
+        
+        # Update interview record with video path
+        interview.video_path = file_path
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'filename': filename,
+            'path': file_path
+        })
+        
+    except Exception as e:
+        print(f"Error saving recording: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/recordings/<filename>')
+def serve_recording(filename):
+    """Serve recorded video files"""
+    from flask import current_app
+    recordings_dir = os.path.join(current_app.root_path, '..', 'static', 'recordings')
+    file_path = os.path.join(recordings_dir, filename)
+    
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'Recording not found'}), 404
+    
+    return send_file(file_path, as_attachment=False)
+
 @main_bp.route('/api/interview_status/<int:interview_id>')
 def interview_status(interview_id):
     """Get real-time interview status"""

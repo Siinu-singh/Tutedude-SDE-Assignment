@@ -7,8 +7,9 @@ AI-powered video proctoring system that detects candidate focus and unauthorized
 - **Focus Detection**: Alerts when candidate looks away >5 seconds or no face detected >10 seconds
 - **Object Detection**: Identifies phones, books, notes, and electronic devices using YOLO/OpenCV
 - **Real-time Monitoring**: Live video feed with instant violation alerts
+- **Video Recording**: Automatic recording and storage of interview sessions
 - **Integrity Scoring**: 100-point system with automatic deductions
-- **Comprehensive Reports**: Detailed analytics with CSV export
+- **Comprehensive Reports**: Detailed analytics with CSV export and video playback
 - **Modern UI**: Responsive design with Tutedude branding
 
 ## Technology Stack
