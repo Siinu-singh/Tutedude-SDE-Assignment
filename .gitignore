@@ -62,7 +62,7 @@ logs/
 .env.production
 
 # Models
-models/
+
 *.weights
 *.cfg
 *.names
